@@ -1,28 +1,29 @@
 const { ethers } = require("ethers");
-const config = require("./config")
+const config = require("./config");
 
-// 连接到结点
+// rpc 프로바이더 설정  https://chainlist.org 에서 찾아서 넣어주면 됨
 const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
 
-// 创建钱包
-const wallet = new ethers.Wallet(config.privateKey.trim(), provider);
+// 민팅할 개인 지갑 설정
+const privateWallet = new ethers.Wallet(config.privateKey);
+const wallet = privateWallet.connect(provider);
 
 async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// 转成16进制
-const convertToHexa = (str = '') =>{
-   const res = [];
-   const { length: len } = str;
-   for (let n = 0, l = len; n < l; n ++) {
-      const hex = Number(str.charCodeAt(n)).toString(16);
-      res.push(hex);
-   };
-   return `0x${res.join('')}`;
-}
+// 문자열을 16진수로 변환
+const convertToHexa = (str = "") => {
+  const res = [];
+  const { length: len } = str;
+  for (let n = 0, l = len; n < l; n++) {
+    const hex = Number(str.charCodeAt(n)).toString(16);
+    res.push(hex);
+  }
+  return `0x${res.join("")}`;
+};
 
-// 获取当前账户的 nonce
+// 논스 가져오기
 async function getCurrentNonce(wallet) {
   try {
     const nonce = await wallet.getTransactionCount("pending");
@@ -34,55 +35,53 @@ async function getCurrentNonce(wallet) {
   }
 }
 
-// 获取当前主网 gas 价格
+//  가스 가격 가져오기
 async function getGasPrice() {
   const gasPrice = await provider.getGasPrice();
   return gasPrice;
 }
 
-// 获取链上实时 gasLimit
+// 가스 리밋 가져오기
 async function getGasLimit(hexData, address) {
   const gasLimit = await provider.estimateGas({
     to: address,
     value: ethers.utils.parseEther("0"),
     data: hexData,
+    from: wallet.address,
   });
 
   return gasLimit.toNumber();
 }
 
-// 转账交易
+// 트랜잭션
 async function sendTransaction(nonce) {
-  const hexData	= convertToHexa(config.tokenJson.trim());
-  // 获取实时 gasPrice
+  const hexData = convertToHexa(config.tokenJson.trim());
+  // 현재 가스 가격 가져오기
   const currentGasPrice = await getGasPrice();
-  // 在当前 gasPrice 上增加 一定倍数
-  const gasMultiple = parseInt(String(config.increaseGas * 100))
+  // 가스비 올리기
+  const gasMultiple = parseInt(String(config.increaseGas * 100));
   const increasedGasPrice = currentGasPrice.div(100).mul(gasMultiple);
-  // 获取钱包地址
+
+  // 주소 체크
   let address = await wallet.getAddress();
   if (config.receiveAddress !== "") {
     address = config.receiveAddress;
   }
-  // 获取当前 gasLimit 限制
+  // 가스 리밋
   const gasLimit = await getGasLimit(hexData, address);
-  // 付费金额
-  const payPrice = config.payPrice
+  // 지불할 가격 (보통 0)
+  const payPrice = config.payPrice;
 
   const transaction = {
-    to: address,
-	// 替换为你要转账的金额
+    to: wallet.address,
     value: ethers.utils.parseEther(payPrice),
-    // 十六进制数据
     data: hexData,
-    // 设置 nonce
-    nonce: nonce,
-    // 设置 gas 价格
     gasPrice: increasedGasPrice,
-	// 限制gasLimit，根据当前网络转账的设置，不知道设置多少的去区块浏览器看别人转账成功的是多少
     gasLimit: gasLimit,
-  };
 
+    // 원래 논스 값 있음
+    // nonce: nonce,
+  };
   try {
     const tx = await wallet.sendTransaction(transaction);
     console.log(`Transaction with nonce ${nonce} hash:`, tx.hash);
@@ -91,15 +90,17 @@ async function sendTransaction(nonce) {
   }
 }
 
-// 发送多次交易
+// 트랜잭션 전송
 async function sendTransactions() {
   const currentNonce = await getCurrentNonce(wallet);
-  const sleepTime = config.sleepTime
+  const sleepTime = config.sleepTime;
 
   for (let i = 0; i < config.repeatCount; i++) {
     const gasPrice = await getGasPrice();
     await sendTransaction(currentNonce + i, gasPrice);
-    await sleep(sleepTime)
+
+    // 설정한 시간만큼 대기
+    await sleep(sleepTime);
   }
 }
 

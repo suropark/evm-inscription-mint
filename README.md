@@ -1,89 +1,96 @@
-# 兼容EVM链的铭文自动化Mint脚本
+# evm inscription minting tool
 
-## 🛠 使用说明
+# evm 비문 민팅 도구
 
-### Step 1: 首先安装 nodejs
+## 🛠 환경 설정
 
-先去 Nodejs 官网下载安装自己电脑操作系统对应的版本
+### Step 1: nodejs 설치
 
 ```bash
 https://nodejs.org/en
 ```
-
-然后看一下安装的版本，是否安装成功
 
 ```bash
 node -v
 npm -v
 ```
 
-如果你更喜欢使用 yarn 则安装 yarn
-```bash
-npm i -g yarn
-```
+### Step 2: 소스 코드 다운로드
 
-### Step 2: 下载脚本源代码
-先用 git clone 源代码到本地
+git clone 명령어를 통해 소스코드를 다운 가능. (git이 없다면 설치 필요할 것임)
+
 ```bash
-git clone https://github.com/sfter/evm-inscription-mint.git
+git clone https://github.com/suropark/evm-inscription-mint.git
 
 cd evm-inscription-mint
 ```
-如果是 Windows 电脑没有安装 git，先去下面网站下载安装 git 软件
+
+Windows 컴퓨터에 git이 설치되어 있지 않은 경우 먼저 아래 웹사이트에 접속하여 git 소프트웨어를 다운로드하여 설치하세요.
+
 ```bash
 https://gitforwindows.org
 ```
 
-### Step 3: 重命名当前目录下的 config.js.example 为 config.js 文件
+### Step 3: 현재 소스 코드 폴더 안의 config.js.example 이름을 config.js 파일로 바꿉니다.
+
 ```bash
 cp config.js.example config.js
 ```
 
-### Step 4: 修改当前目录下的 config.js 配置文件
+### Step 4: config.js 파일 수정
+
 ```javascript
 const config = {
-    // 你想要打多少张，这里就设置多少，建议单次别超过 50，不然容易不上链
-    repeatCount: 1,
+  // 반복 횟수 설정
+  repeatCount: 1,
 
-    // 在当前的 gas 基础上增加多少倍
-    increaseGas: 1.2,
+  // 현재 가스 기준 가스비 얼마나 증가시킬지 20%?
+  increaseGas: 1.2,
 
-    // 你钱包的私钥
-    privateKey: "",
+  // 지갑의 개인 키
+  privateKey: "",
 
-    // 铭文json数据（替换成你想打的铭文json格式数据）
-    tokenJson: 'data:,{"p":"fair-20","op":"mint","tick":"fair","amt":"1000"}',
+  // 비문 json 데이터
+  tokenJson: 'data:,{"p":"fair-20","op":"mint","tick":"fair","amt":"1000"}',
 
-    // RPC结点（兼容 evm 链都行）打哪条链就用哪条链的节点地址
-    // eth =>  https://mainnet.infura.io/v3
-    // arb => https://arb1.arbitrum.io/rpc
-    // polygon => https://polygon-rpc.com
-    // op => https://mainnet.optimism.io
-    // linea => https://mainnet.infura.io/v3
-    // scroll => https://rpc.scroll.io
-    // zks => https://mainnet.era.zksync.io
-    rpcUrl: "https://arb1.arbitrum.io/rpc"
-}
+  // RPC노드 (evm 체인과 호환 가능)
+  // eth =>  https://mainnet.infura.io/v3
+  // arb => https://arb1.arbitrum.io/rpc
+  // polygon => https://polygon-rpc.com
+  // op => https://mainnet.optimism.io
+  // linea => https://mainnet.infura.io/v3
+  // scroll => https://rpc.scroll.io
+  // zks => https://mainnet.era.zksync.io
+  rpcUrl: "https://arb1.arbitrum.io/rpc",
+};
 ```
 
-### Step 5: 安装依赖包
+### Step 5: 패키지 설치
+
 ```bash
 npm i
 ```
+
 or
+
 ```bash
 yarn install
 ```
 
-### Step 6: 运行 Mint 脚本程序
+### Step 6: 민팅 실행
+
 ```shell
 node index.js
 ```
+
 or
+
 ```shell
 yarn start
 ```
+
 or
+
 ```shell
 npm run start
 ```
